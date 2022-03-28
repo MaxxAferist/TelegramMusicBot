@@ -5,7 +5,7 @@ import os
 
 
 genius = lg.Genius(GENIUS_TOKEN)
-song = genius.search_song('Ты способен на подвиг')
+song = genius.search_song('В питере пить')
 filename = f'lyrics_{song.artist}_{song.title}.json'.lower()
 song.save_lyrics(filename)
 with open(filename) as file:
