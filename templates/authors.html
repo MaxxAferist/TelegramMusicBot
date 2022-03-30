@@ -1,0 +1,20 @@
+{% extends "base.html" %} {% block content %}
+<h1>Рейтинг популярности авторов</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col" style="color: azure;">#</th>
+            <th scope="col" style="color: azure;">Имя</th>
+            <th scope="col" style="color: azure;">Кол-во интересовавшихся</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for author in authors %}
+        <th scope="row" style="color: azure;">{{ loop.index }}</th>
+        <td style="color: azure;">{{ author.name }}</td>
+        <td style="color: azure;">{{ aithor.searches }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

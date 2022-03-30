@@ -1,0 +1,22 @@
+{% extends "base.html" %} {% block content %}
+<h1>Рейтинг популярности песен</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col" style="color: azure;">#</th>
+            <th scope="col" style="color: azure;">Название</th>
+            <th scope="col" style="color: azure;">Автор</th>
+            <th scope="col" style="color: azure;">Кол-во интересовавшихся</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for song in songs %}
+        <th scope="row" style="color: azure;">{{ loop.index }}</th>
+        <td style="color: azure;">{{ song.title }}</td>
+        <td style="color: azure;">{{ song.artist }}</td>
+        <td style="color: azure;">{{ song.searches }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
