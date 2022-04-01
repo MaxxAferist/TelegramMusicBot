@@ -1,6 +1,7 @@
 from flask import Flask, abort, jsonify, make_response, redirect, request, render_template
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 from data import db_session
+from data.searches import Search
 from data.users import User
 from data.songs import Song
 from data.authors import Author
@@ -32,14 +33,26 @@ class App():
         @self.app.route('/songs')
         def songs():
             db_sess = db_session.create_session()
-            songs = db_sess.query(Song)
+            songs = db_sess.query(Song).all()
+            songs = sorted(songs, key=lambda x: x.searches, reverse=True)
             return render_template("songs.html", title="Рейтинг страниц", songs=songs)
 
         @self.app.route('/authors')
         def authors():
             db_sess = db_session.create_session()
-            authors = db_sess.query(Author)
+            authors = db_sess.query(Author).all()
+            authors = sorted(authors, key=lambda x: x.searches, reverse=True)
             return render_template("authors.html", title="Рейтинг авторов", authors=authors)
+
+        @self.app.route('/history')
+        def history():
+            db_sess = db_session.create_session()
+            searhes_id = current_user.searches_id.strip().split()
+            searhes_id = list(map(int, searhes_id))
+            searhes = db_sess.query(Search).filter(Search.id.in_(searhes_id))
+            searhes = sorted(searhes, key=lambda x: x.creation_data)
+            return render_template('history.html', title='История', searhes=searhes)
+
 
         @self.app.route('/login', methods=['GET', 'POST'])
         def login():
@@ -59,7 +72,7 @@ class App():
         @login_required
         def logout():
             logout_user()
-            redirect('/')
+            return redirect('/')
 
         
 

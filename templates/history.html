@@ -1,0 +1,26 @@
+{% extends "base.html" %} {% block content %}
+<h1>История пойска</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col" style="color: azure;">#</th>
+            <th scope="col" style="color: azure;">Название</th>
+            <th scope="col" style="color: azure;">Автор</th>
+            <th scope="col" style="color: azure;">Ссылка на песню</th>
+            <th scope="col" style="color: azure;">Дата пойска</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for search in searches %}
+        <th scope="row" style="color: azure;">{{ loop.index }}</th>
+        <td style="color: azure;">{{ search.song.title }}</td>
+        <td style="color: azure;">{{ search.song.artist }}</td>
+        <td style="color: azure;">
+            <a href="{{ search.song.url }}" style="text-decoration: none">Spotify</a>
+        </td>
+        <td style="color: azure;">{{ search.creation_data }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

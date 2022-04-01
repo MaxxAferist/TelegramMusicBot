@@ -2,6 +2,7 @@ import sqlalchemy
 from sqlalchemy import orm
 from .db_session import SqlAlchemyBase
 from sqlalchemy_serializer import SerializerMixin
+import datetime
 
 
 class Search(SqlAlchemyBase, SerializerMixin):
@@ -9,9 +10,11 @@ class Search(SqlAlchemyBase, SerializerMixin):
 
     id = sqlalchemy.Column(
         sqlalchemy.Integer, primary_key=True, autoincrement=True)
-    search = sqlalchemy.Column(sqlalchemy.String)
     user_id = sqlalchemy.Column(
         sqlalchemy.Integer, sqlalchemy.ForeignKey('users.id'))
-    title = sqlalchemy.Column(sqlalchemy.String)
-    artist = sqlalchemy.Column(sqlalchemy.String)
-    lyrics = sqlalchemy.Column(sqlalchemy.String)
+    song_id = sqlalchemy.Column(
+        sqlalchemy.Integer, sqlalchemy.ForeignKey('songs.id'))
+    user = orm.relation('User')
+    song = orm.relation('Song')
+    creation_data = sqlalchemy.Column(
+        sqlalchemy.DateTime, default=datetime.datetime.now)
