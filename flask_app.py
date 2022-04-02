@@ -17,7 +17,6 @@ class App():
         self.login_manager.init_app(self.app)
     
     def run(self):
-        db_session.global_init("db/music.db")
         self.app.run(host='127.0.0.1', port=8000)
 
     def activate_route(self):
@@ -47,17 +46,18 @@ class App():
         @self.app.route('/history')
         def history():
             db_sess = db_session.create_session()
-            searhes_id = current_user.searches_id.strip().split()
-            searhes_id = list(map(int, searhes_id))
-            searhes = db_sess.query(Search).filter(Search.id.in_(searhes_id))
-            searhes = sorted(searhes, key=lambda x: x.creation_data)
-            return render_template('history.html', title='История', searhes=searhes)
+            searches_id = current_user.searches_id.strip().split()
+            searches_id = list(map(int, searches_id))
+            searches = db_sess.query(Search).filter(Search.id.in_(searches_id)).all()
+            searches = sorted(searches, key=lambda x: x.creation_data)
+            return render_template('history.html', title='История', searches=searches)
 
 
         @self.app.route('/login', methods=['GET', 'POST'])
         def login():
             form = LoginForm()
             if form.validate_on_submit():
+                db_session.global_init("db/music.db")
                 db_sess = db_session.create_session()
                 user = db_sess.query(User).filter(
                     User.name == form.name.data).first()

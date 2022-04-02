@@ -277,8 +277,8 @@ def main():
 
 if __name__ == '__main__':
     db_session.global_init("db/music.db")
-    # app = flask_app.App()
-    # app.activate_route()
-    # t1 = threading.Thread(target=app.run)
-    # t1.start()
+    app = flask_app.App()
+    app.activate_route()
+    t1 = threading.Thread(target=app.run)
+    t1.start()
     main()
