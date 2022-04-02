@@ -49,7 +49,7 @@ class App():
             searches_id = current_user.searches_id.strip().split()
             searches_id = list(map(int, searches_id))
             searches = db_sess.query(Search).filter(Search.id.in_(searches_id)).all()
-            searches = sorted(searches, key=lambda x: x.creation_data)
+            searches = sorted(searches, key=lambda x: x.creation_data, reverse=True)
             return render_template('history.html', title='История', searches=searches)
 
 
