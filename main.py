@@ -14,7 +14,6 @@ from data.songs import Song
 from data.authors import Author
 from data.searches import Search
 import json
-import logging
 import threading
 
 
@@ -41,37 +40,37 @@ def process_search(update, context):
         context.user_data['artist'] = song.artist
         context.user_data['lyrics'] = song.lyrics
         context.user_data['url'] = url
+        db_sess = db_session.create_session()
+        song_db = db_sess.query(Song).filter((Song.title == song.title) & (Song.artist == song.artist)).first()
+        if song_db:
+            song_db.searches += 1
+        else:
+            song_db = Song(
+                title=song.title,
+                artist=song.artist,
+                url=url,
+                searches=1
+            )
+            db_sess.add(song_db)
+        author_db = db_sess.query(Author).filter(Author.name == song.artist).first()
+        if author_db:
+            author_db.searches += 1
+        else:
+            author_db = Author(
+                name=song.artist,
+                searches=1
+            )
+            db_sess.add(author_db)
+        user_id = context.user_data.get('user_id')
+        search = Search(
+            user_id=user_id,
+            song_id=song_db.id
+            )
+        db_sess.add(search)
         if context.user_data.get('success'):
-            db_sess = db_session.create_session()
-            song_db = db_sess.query(Song).filter((Song.title == song.title) & (Song.artist == song.artist)).first()
-            if song_db:
-                song_db.searhes += 1
-            else:
-                song_db = Song(
-                    title=song.title,
-                    artist=song.artist,
-                    url=url,
-                    searches=1
-                )
-                db_sess.add(song_db)
-            author_db = db_sess.query(Author).filter(Author.name == song.artist).first()
-            if author_db:
-                author_db.searhes += 1
-            else:
-                author_db = Author(
-                    name=song.artist,
-                    searches=1
-                )
-                db_sess.add(author_db)
-            user_id = context.user_data.get('user_id')
-            search = Search(
-                user_id=user_id,
-                song_id=song_db.id
-                )
-            db_sess.add(search)
             user = db_sess.query(User).filter(User.id == user_id).first()
             user.searches_id = str(user.searches_id) + ' ' + str(search.id)
-            db_sess.commit()
+        db_sess.commit()
         keyboard = [['Текст песни', 'Ссылку на песню'],
                     ['Название', 'Автор'],
                     ['Найти другую', 'Выйти']]
@@ -82,7 +81,11 @@ def process_search(update, context):
     except IndexError as e:
         update.message.reply_text('Песня не найдена. Попробуйте снова!')
         return 1
-    except Exception:
+    except TypeError:
+        update.message.reply_text('Песня не найдена. Попробуйте снова!')
+        return 1
+    except Exception as e:
+        print(e)
         update.message.reply_text('Произошла ошибка')
         return 1
 
@@ -94,7 +97,7 @@ def handler(update, context):
             "Введите строку из песни"
         )
         return 1
-    elif answer == 'cсылка на сайт':
+    elif answer == 'ссылка на сайт':
         reply_keyboard = [['Поиск', 'Ссылка на сайт'],
                           ['Регистрация', 'Войти']]
         markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -163,7 +166,6 @@ def registration(update, context):
         name = update.message.text
         db_sess = db_session.create_session()
         user = db_sess.query(User).filter(User.name == name).first()
-        print(user)
         if user:
             update.message.reply_text("Имя занято. Попробуйте другое!")
             return 2
@@ -216,7 +218,6 @@ def login(update, context):
         return 3
     if not context.user_data.get("login_password"):
         password = update.message.text
-        context.user_data["login_password"] = password
         db_sess = db_session.create_session()
         user = db_sess.query(User).filter(User.name == context.user_data["login_name"]).first()
         if user.check_password(password):
@@ -228,6 +229,7 @@ def login(update, context):
                 reply_keyboard, one_time_keyboard=True)
             update.message.reply_text(
                 'Вы успешно вошли!', reply_markup=markup)
+            context.user_data["login_password"] = password
         else:
             reply_keyboard = [['Поиск', 'Ссылка на сайт'],
                               ['Регистрация', 'Войти']]
@@ -238,6 +240,8 @@ def login(update, context):
         context.user_data["name"] = None
         context.user_data["password"] = None
         context.user_data["password_check"] = None
+        context.user_data["login_password"] = None
+        context.user_data["login_name"] = None
         return 0
 
 
@@ -279,9 +283,8 @@ def main():
 
 if __name__ == '__main__':
     db_session.global_init("db/music.db")
-    logging.basicConfig(filename="sample.log", level=logging.INFO)
-    # app = flask_app.App()
-    # app.activate_route()
-    # t1 = threading.Thread(target=app.run)
-    # t1.start()
+    app = flask_app.App()
+    app.activate_route()
+    t1 = threading.Thread(target=app.run)
+    t1.start()
     main()
