@@ -14,6 +14,7 @@ from data.songs import Song
 from data.authors import Author
 from data.searches import Search
 import json
+import logging
 import threading
 
 
@@ -162,6 +163,7 @@ def registration(update, context):
         name = update.message.text
         db_sess = db_session.create_session()
         user = db_sess.query(User).filter(User.name == name).first()
+        print(user)
         if user:
             update.message.reply_text("Имя занято. Попробуйте другое!")
             return 2
@@ -277,6 +279,7 @@ def main():
 
 if __name__ == '__main__':
     db_session.global_init("db/music.db")
+    logging.basicConfig(filename="sample.log", level=logging.INFO)
     # app = flask_app.App()
     # app.activate_route()
     # t1 = threading.Thread(target=app.run)
