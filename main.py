@@ -13,6 +13,7 @@ from data.users import User
 from data.songs import Song
 from data.authors import Author
 from data.searches import Search
+import logging
 import json
 import threading
 
