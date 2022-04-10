@@ -6,6 +6,7 @@ from data.users import User
 from data.searches import Search
 from PyQt5 import QtCore, QtGui, QtWidgets
 from ctypes import *
+from quest_game import Menu
 
 KOEF = windll.user32.GetSystemMetrics(0) / 1920
 db_session.global_init("db/music.db")
@@ -159,12 +160,18 @@ class MainWindow(QMainWindow, Window_start):
             user = db_sess.query(User).filter(User.name == login).first()
             if user.check_password(password):
                 db_sess.commit()
+                self.go_menu()
             else:
                 self.hidden_label.setText('Неправильный пароль')
 
     def go_reg(self):
         self.ex = Reg_Window()
         self.ex.show()
+        self.close()
+
+    def go_menu(self):
+        self.menu = Menu()
+        self.menu.show()
         self.close()
 
 
@@ -183,6 +190,7 @@ class Reg_Window(QMainWindow, Window_reg):
             user = db_sess.query(User).filter(User.name == login).first()
             if user:
                 self.hidden_label.setText('Такое имя уже существует!')
+                self.go_main()
                 return 2
         if password:
             db_sess = db_session.create_session()
@@ -192,6 +200,11 @@ class Reg_Window(QMainWindow, Window_reg):
             user.searches_id = ''
             db_sess.add(user)
             db_sess.commit()
+
+    def go_main(self):
+        self.main_window = MainWindow()
+        self.main_window.show()
+        self.close()
 
 
 if __name__ == '__main__':
