@@ -15,7 +15,8 @@ from data.authors import Author
 from data.searches import Search
 import json
 import threading
-
+import random
+from list_anekdotov import anekdoty
 
 def stop(update, context):
     update.message.reply_text(
@@ -159,6 +160,9 @@ def handler(update, context):
                 reply_markup=markup
             )
         return 0
+    elif answer == 'анекдот':
+        anek = anekdoty[random.randrange(0, len(anekdoty))]
+        update.message.reply_text(anek)
 
 
 def registration(update, context):
@@ -251,7 +255,8 @@ def start(update, context):
     markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
     update.message.reply_text(
         "Привет, вы попали в MusicBot\n"
-        "С его помощью можно найти любую песню по строке из неё",
+        "С его помощью можно найти любую песню по строке из неё\n"
+        "p.s. Введя 'Анекдот' Вы получите смешные анекдоты",
         reply_markup=markup
     )
 
