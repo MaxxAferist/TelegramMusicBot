@@ -175,9 +175,9 @@ color: #FFFFFF;
         self.pushButton_3.setStyleSheet("QPushButton{\n"
 "    position: relative;\n"
 "    background-color: #FFFFFF;\n"
-"    border: 5px solid #ffff00;\n"
+"    border: 5px solid #000000;\n"
 "      font: bold 14px;\n"
-"    color: #ffff00;\n"
+"    color: #000000;\n"
 "    width: 200px;\n"
 "    text-align: center;\n"
 "    point-size: 10px;\n"
@@ -186,7 +186,7 @@ color: #FFFFFF;
 "\n"
 "QPushButton:hover\n"
 "{\n"
-"   background-color:#ffff00;\n"
+"   background-color:#000000;\n"
 "    color: #FFFFFF\n"
 "}")
         self.pushButton_3.setText("")
@@ -239,8 +239,8 @@ class Menu(QMainWindow, Menu_MainWindow):
 
     def go_game(self):
         pygame.mixer.Sound('sounds/click.mp3').play()
-        self.ex = Game()
-        self.ex.show()
+        self.game = Game()
+        self.game.show()
         self.close()
 
     def exit(self):
@@ -283,16 +283,24 @@ class Ui_Dialog(object):
 
 
 class Win_or_Lose(QDialog, Ui_Dialog):
-    def __init__(self):
+    def __init__(self, points):
         super().__init__()
         self.setupUi(self)
         self.pushButton.clicked.connect(self.exit)
+        self.points = points
 
     def win(self):
         self.lb2.setText('Поздравляю, вы победили!')
 
     def lose(self):
-        self.lb2.setText('Вы проиграли!')
+        point = int(str(self.points)[-1])
+        if point == 1 and self.points != 11:
+            self.lb2.setText(f'Вы проиграли! У вас {self.points} очко')
+
+        elif 1 < point < 5:
+            self.lb2.setText(f'Вы проиграли! У вас {self.points} очка')
+        else:
+            self.lb2.setText(f'Вы проиграли! У вас {self.points} очков')
 
     def exit(self):
         sys.exit(app.exec_())
@@ -305,7 +313,7 @@ class Game(QMainWindow, Game_MainWindow):
         self.setWindowTitle('Game')
         self.pixmap = QPixmap('static/image/menu_background.jpg')
         self.label.setPixmap(self.pixmap)
-        self.count = 0
+        self.points = 0
         self.mistakes = 0
         self.dct = {}
         self.preparation()
@@ -321,7 +329,7 @@ class Game(QMainWindow, Game_MainWindow):
         id = random.randint(1, cur.execute('SELECT COUNT(1) FROM songs').fetchone()[0])
         self.dct[cur.execute(f'SELECT artist FROM songs WHERE id = {id}').fetchone()[0]] = 1
         title = cur.execute(f'SELECT title FROM songs WHERE id = {id}').fetchone()[0]
-        self.label_2.setText(f'Кто автор песни {title}? {self.count}/5')
+        self.label_2.setText(f'Кто автор песни {title}?')
         lst_id = [id]
 
         true_button = random.choice(lst_but)
@@ -341,22 +349,18 @@ class Game(QMainWindow, Game_MainWindow):
         pygame.mixer.Sound('sounds/click.mp3').play()
         if self.dct[ans] == 1:
             self.dct = {}
-            self.count += 1
-            if self.count == 5:
-                self.win = Win_or_Lose()
-                self.win.win()
-                self.win.show()
-            else:
-                self.pushButton.setText('')
-                self.pushButton_2.setText('')
-                self.pushButton_3.setText('')
-                self.pushButton_4.setText('')
-                self.preparation()
+            self.points += 1
+            self.pushButton.setText('')
+            self.pushButton_2.setText('')
+            self.pushButton_3.setText('')
+            self.pushButton_4.setText('')
+            self.preparation()
         else:
             self.mistakes += 1
             self.label_3.setText(f'Ошибки: {self.mistakes}/3')
             if self.mistakes == 3:
-                self.win = Win_or_Lose()
+                self.win = Win_or_Lose(self.points)
+                self.close()
                 self.win.lose()
                 self.win.show()
 
