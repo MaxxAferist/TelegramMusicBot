@@ -4,6 +4,10 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import sqlite3
 import sys
 import random
+import pygame
+
+
+pygame.mixer.init()
 
 
 class Menu_MainWindow(object):
@@ -27,7 +31,7 @@ class Menu_MainWindow(object):
         self.start_game.setFont(font)
         self.start_game.setStyleSheet("QPushButton{\n"
 "    position: relative;\n"
-"    background-color: #FFFFF;\n"
+"    background-color: #FFFFFF;\n"
 "    border: 5px solid #9acd32;\n"
 "      font: bold 16px;\n"
 "    color: #9acd32;\n"
@@ -43,34 +47,8 @@ class Menu_MainWindow(object):
 "    color:white\n"
 "}")
         self.start_game.setObjectName("start_game")
-        self.settings_button = QtWidgets.QPushButton(self.centralwidget)
-        self.settings_button.setGeometry(QtCore.QRect(290, 260, 210, 61))
-        font = QtGui.QFont()
-        font.setPointSize(-1)
-        font.setBold(True)
-        font.setItalic(False)
-        font.setWeight(75)
-        self.settings_button.setFont(font)
-        self.settings_button.setStyleSheet("QPushButton{\n"
-"    position: relative;\n"
-"    background-color: #FFFFF;\n"
-"    border: 5px solid #9acd32;\n"
-"      font: bold 16px;\n"
-"    color: #9acd32;\n"
-"    width: 200px;\n"
-"    text-align: center;\n"
-"    point-size: 16px;\n"
-"     border-radius: 12px\n"
-"}\n"
-"\n"
-"QPushButton:hover\n"
-"{\n"
-"   background-color:#9acd32;\n"
-"    color:white\n"
-"}")
-        self.settings_button.setObjectName("settings_button")
         self.exit_button = QtWidgets.QPushButton(self.centralwidget)
-        self.exit_button.setGeometry(QtCore.QRect(290, 340, 210, 61))
+        self.exit_button.setGeometry(QtCore.QRect(290, 260, 210, 61))
         font = QtGui.QFont()
         font.setPointSize(-1)
         font.setBold(True)
@@ -79,7 +57,7 @@ class Menu_MainWindow(object):
         self.exit_button.setFont(font)
         self.exit_button.setStyleSheet("QPushButton{\n"
 "    position: relative;\n"
-"    background-color: #FFFFF;\n"
+"    background-color: #FFFFFF;\n"
 "    border: 5px solid #9acd32;\n"
 "      font: bold 16px;\n"
 "    color: #9acd32;\n"
@@ -104,7 +82,6 @@ class Menu_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.start_game.setText(_translate("MainWindow", "Играть"))
-        self.settings_button.setText(_translate("MainWindow", "Настройки"))
         self.exit_button.setText(_translate("MainWindow", "Выход"))
 
 
@@ -116,15 +93,14 @@ class Game_MainWindow(object):
         self.centralwidget.setObjectName("centralwidget")
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(0, 0, 801, 568))
-        self.label.setText("")
-        self.label.setObjectName("label")
         self.label_2 = QtWidgets.QLabel(self.centralwidget)
         self.label_2.setGeometry(QtCore.QRect(100, 30, 581, 91))
         self.label_2.setText("")
-        self.label_2.setStyleSheet("QLabel{\n"
-"text-align: center;\n"
-"font-size: 16px;"
-"}")
+        self.label_2.setStyleSheet("""QLabel{\n
+text-align: center;\n
+font-size: 30px;\n
+color: #FFFFFF;
+}""")
         self.label_2.setObjectName("label_2")
         self.label_3 = QtWidgets.QLabel(self.centralwidget)
         self.label_3.setGeometry(QtCore.QRect(300, 400, 200, 200))
@@ -132,6 +108,7 @@ class Game_MainWindow(object):
         self.label_3.setStyleSheet("QLabel{\n"
                                    "text-align: center;\n"
                                    "font-size: 30px;"
+                                   "color: #FFFFFF;"
                                    "}")
         self.label_3.setObjectName("label_3")
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
@@ -145,7 +122,7 @@ class Game_MainWindow(object):
         self.pushButton.setAutoFillBackground(False)
         self.pushButton.setStyleSheet("QPushButton{\n"
 "    position: relative;\n"
-"    background-color: #FFFFF;\n"
+"    background-color: #FFFFFF;\n"
 "    border: 5px solid #9acd32;\n"
 "      font: bold 14px;\n"
 "    color: #9acd32;\n"
@@ -158,7 +135,7 @@ class Game_MainWindow(object):
 "QPushButton:hover\n"
 "{\n"
 "   background-color:#9acd32;\n"
-"    color:white\n"
+"    color: #FFFFFF;\n"
 "}")
         self.pushButton.setText("")
         self.pushButton.setObjectName("pushButton")
@@ -171,7 +148,7 @@ class Game_MainWindow(object):
         self.pushButton_2.setFont(font)
         self.pushButton_2.setStyleSheet("QPushButton{\n"
 "    position: relative;\n"
-"    background-color: #FFFFF;\n"
+"    background-color: #FFFFFF;\n"
 "    border: 5px solid #310062;\n"
 "      font: bold 14px;\n"
 "    color: #310062;\n"
@@ -184,7 +161,7 @@ class Game_MainWindow(object):
 "QPushButton:hover\n"
 "{\n"
 "   background-color: #310062;\n"
-"    color:white\n"
+"    color: #FFFFFF\n"
 "}")
         self.pushButton_2.setText("")
         self.pushButton_2.setObjectName("pushButton_2")
@@ -197,7 +174,7 @@ class Game_MainWindow(object):
         self.pushButton_3.setFont(font)
         self.pushButton_3.setStyleSheet("QPushButton{\n"
 "    position: relative;\n"
-"    background-color: #FFFFF;\n"
+"    background-color: #FFFFFF;\n"
 "    border: 5px solid #ffff00;\n"
 "      font: bold 14px;\n"
 "    color: #ffff00;\n"
@@ -210,7 +187,7 @@ class Game_MainWindow(object):
 "QPushButton:hover\n"
 "{\n"
 "   background-color:#ffff00;\n"
-"    color:white\n"
+"    color: #FFFFFF\n"
 "}")
         self.pushButton_3.setText("")
         self.pushButton_3.setObjectName("pushButton_3")
@@ -223,7 +200,7 @@ class Game_MainWindow(object):
         self.pushButton_4.setFont(font)
         self.pushButton_4.setStyleSheet("QPushButton{\n"
 "    position: relative;\n"
-"    background-color: #FFFFF;\n"
+"    background-color: #FFFFFF;\n"
 "    border: 5px solid red;\n"
 "      font: bold 14px;\n"
 "    color: #FFFFFF;\n"
@@ -237,7 +214,7 @@ class Game_MainWindow(object):
 "QPushButton:hover\n"
 "{\n"
 "   background-color:red;\n"
-"    color:white\n"
+"    color: #FFFFFF\n"
 "}")
         self.pushButton_4.setText("")
         self.pushButton_4.setObjectName("pushButton_4")
@@ -261,6 +238,7 @@ class Menu(QMainWindow, Menu_MainWindow):
         self.start_game.clicked.connect(self.go_game)
 
     def go_game(self):
+        pygame.mixer.Sound('sounds/click.mp3').play()
         self.ex = Game()
         self.ex.show()
         self.close()
@@ -325,6 +303,8 @@ class Game(QMainWindow, Game_MainWindow):
         super().__init__()
         self.setupUi(self)
         self.setWindowTitle('Game')
+        self.pixmap = QPixmap('static/image/menu_background.jpg')
+        self.label.setPixmap(self.pixmap)
         self.count = 0
         self.mistakes = 0
         self.dct = {}
@@ -358,7 +338,7 @@ class Game(QMainWindow, Game_MainWindow):
         con.close()
 
     def game(self, ans):
-        print(self.dct)
+        pygame.mixer.Sound('sounds/click.mp3').play()
         if self.dct[ans] == 1:
             self.dct = {}
             self.count += 1

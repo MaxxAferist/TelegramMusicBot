@@ -1,0 +1,23 @@
+{% extends "base.html" %} {% block content %}
+<h1>Таблица лидеров</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col" style="color: azure;">#</th>
+            <th scope="col" style="color: azure;">Очки</th>
+            <th scope="col" style="color: azure;">Имя пользователя</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %} {% if current_user.is_authenticated %}
+        <th scope="row" style="color: rgb(116, 255, 35);"><b>{{ loop.index }}</b></th>
+        <td style="color: rgb(116, 255, 35);;"><b>{{ user.points }}</b></td>
+        <td style="color: rgb(116, 255, 35);;"><b>{{ user.name }}</b></td>
+        {% else %}
+        <th scope="row" style="color: azure;">{{ loop.index }}</th>
+        <td style="color: azure;">{{ user.points }}</td>
+        <td style="color: azure;">{{ user.name }}</td>
+        {% endif %} {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

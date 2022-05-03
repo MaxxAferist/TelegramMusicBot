@@ -8,7 +8,6 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import spotipy
 import re
 import flask_app
-from data import db_session
 from data.users import User
 from data.songs import Song
 from data.authors import Author
@@ -19,6 +18,7 @@ import threading
 import random
 from list_anekdotov import anekdoty
 
+
 def stop(update, context):
     update.message.reply_text(
         "Конец работы. Регистрация сбросилась."
@@ -28,57 +28,52 @@ def stop(update, context):
 
 def process_search(update, context):
     try:
+        update.message.reply_text('Ищем...')
         song_text = update.message.text
         sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=CLIENT_ID,
-                                                                client_secret=CLIENT_SECRET))
+                                                                   client_secret=CLIENT_SECRET))
         genius = lg.Genius(GENIUS_TOKEN)
         song = genius.search_song(song_text)
         text = f'{song.artist} {song.title}'
         text = re.sub(r'\([^()]*\)', '', text)
-        result = sp.search(q=text)['tracks']['items'][0]
-        url = result['external_urls']['spotify']
+        # result = sp.search(q=text)['tracks']['items'][0]
+        # url = result['external_urls']['spotify']
+        url = 'В данный момент Spotify не работает на территории России из-за санкций\nПриносим свои извинения'
 
         context.user_data['title'] = song.title
         context.user_data['artist'] = song.artist
         context.user_data['lyrics'] = song.lyrics
         context.user_data['url'] = url
-        db_sess = db_session.create_session()
-        song_db = db_sess.query(Song).filter((Song.title == song.title) & (Song.artist == song.artist)).first()
-        if song_db:
-            song_db.searches += 1
-        else:
-            song_db = Song(
-                title=song.title,
-                artist=song.artist,
-                url=url,
-                searches=1
-            )
-            db_sess.add(song_db)
-        author_db = db_sess.query(Author).filter(Author.name == song.artist).first()
-        if author_db:
-            author_db.searches += 1
-        else:
-            author_db = Author(
-                name=song.artist,
-                searches=1
-            )
-            db_sess.add(author_db)
+
         user_id = context.user_data.get('user_id')
-        search = Search(
-            user_id=user_id,
-            song_id=song_db.id
-            )
-        db_sess.add(search)
+
+        push_json = {'title': song.title,
+                     'artist': song.artist,
+                     'url': url
+                     }
+        resp = requests.post(
+            'http://localhost:8000/api/song/add_searches', json=push_json).json()
+        song_id = resp.get('song_id')
+
+        push_json = {'artist': song.artist}
+        requests.post(
+            'http://localhost:8000/api/authors/add_searhes', json=push_json)
+
+        push_json = {'user_id': user_id,
+                     'song_id': song_id,
+                     'success': False
+                     }
         if context.user_data.get('success'):
-            user = db_sess.query(User).filter(User.id == user_id).first()
-            user.searches_id = str(user.searches_id) + ' ' + str(search.id)
-        db_sess.commit()
+            push_json['success'] = True
+        requests.post(
+            'http://localhost:8000/api/searches/add', json=push_json)
+        
         keyboard = [['Текст песни', 'Ссылку на песню'],
                     ['Название', 'Автор'],
                     ['Найти другую', 'Выйти']]
         markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
-        update.message.reply_text('Песня найдена... Что хотите увидеть?', 
-                                    reply_markup=markup)
+        update.message.reply_text('Песня найдена... Что хотите увидеть?',
+                                  reply_markup=markup)
         return 0
     except IndexError as e:
         update.message.reply_text('Песня не найдена. Попробуйте снова!')
@@ -86,8 +81,11 @@ def process_search(update, context):
     except TypeError:
         update.message.reply_text('Песня не найдена. Попробуйте снова!')
         return 1
+    except AttributeError:
+        update.message.reply_text('Песня не найдена. Попробуйте снова!')
+        return 1
     except Exception as e:
-        print(e)
+        print(e.__class__.__name__)
         update.message.reply_text('Произошла ошибка')
         return 1
 
@@ -169,13 +167,15 @@ def handler(update, context):
 def registration(update, context):
     if not context.user_data.get("name"):
         name = update.message.text
-        db_sess = db_session.create_session()
-        user = db_sess.query(User).filter(User.name == name).first()
-        if user:
-            update.message.reply_text("Имя занято. Попробуйте другое!")
+        push_json = {'name': name}
+        resp = requests.post(
+            'http://localhost:8000/api/register/name', json=push_json).json()
+        msg = resp.get('message')
+        if msg == 'success':
+            context.user_data["name"] = name
+            update.message.reply_text('Введите пароль')
             return 2
-        context.user_data["name"] = name
-        update.message.reply_text('Введите пароль')
+        update.message.reply_text(msg)
         return 2
     if not context.user_data.get("password"):
         password = update.message.text
@@ -187,49 +187,65 @@ def registration(update, context):
         context.user_data["password_again"] = password_again
         if context.user_data["password"] == context.user_data["password_again"]:
             context.user_data["success"] = True
-            db_sess = db_session.create_session()
-            user = User()
-            user.name = context.user_data["name"]
-            user.set_password(context.user_data["password"])
-            user.searches_id = ''
-            db_sess.add(user)
-            db_sess.commit()
-            context.user_data["user_id"] = user.id
-            reply_keyboard = [['Поиск', 'Ссылка на сайт'], ['Регистрация', 'Войти']]
-            markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
-            update.message.reply_text('Вы успешно зарегистрированны! Теперь можете войти на наш сайт и просматривать свою историю', reply_markup=markup)
+            push_json = {'name': context.user_data["name"],
+                         'password': context.user_data["password"]
+                         }
+            resp = requests.post(
+                'http://localhost:8000/api/register/user', json=push_json).json()
+            user_id = resp["user_id"]
+            context.user_data["user_id"] = user_id
+            reply_keyboard = [['Поиск', 'Ссылка на сайт'],
+                              ['Регистрация', 'Войти']]
+            markup = ReplyKeyboardMarkup(
+                reply_keyboard, one_time_keyboard=True)
+            update.message.reply_text(
+                'Вы успешно зарегистрированны! Теперь можете войти на наш сайт и просматривать свою историю', reply_markup=markup)
             return 0
         else:
             reply_keyboard = [['Поиск', 'Ссылка на сайт'],
                               ['Регистрация', 'Войти']]
-            markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
-            update.message.reply_text("Неправильный пароль", reply_markup=markup)
+            markup = ReplyKeyboardMarkup(
+                reply_keyboard, one_time_keyboard=True)
+            update.message.reply_text(
+                "Неправильный пароль", reply_markup=markup)
         context.user_data["name"] = None
         context.user_data["password"] = None
         context.user_data["password_check"] = None
+        return 0
+    else:
+        update.message.reply_text('Вы уже зарегистрированы!')
         return 0
 
 
 def login(update, context):
     if not context.user_data.get("login_name"):
         name = update.message.text
-        db_sess = db_session.create_session()
-        user = db_sess.query(User).filter(User.name == name).first()
-        if not user:
-            update.message.reply_text("Такого пользователя не существует")
+
+        push_json = {'name': name}
+        resp = requests.post(
+            'http://localhost:8000/api/login/name', json=push_json).json()
+        msg = resp.get('message')
+        if msg == 'success':
+            context.user_data["login_name"] = name
+            update.message.reply_text('Введите пароль')
             return 3
-        context.user_data["login_name"] = name
-        update.message.reply_text('Введите пароль')
+        update.message.reply_text(msg)
         return 3
     if not context.user_data.get("login_password"):
         password = update.message.text
-        db_sess = db_session.create_session()
-        user = db_sess.query(User).filter(User.name == context.user_data["login_name"]).first()
-        if user.check_password(password):
+        login_name = context.user_data["login_name"]
+        push_json = {'password': password,
+                     'login_name': login_name}
+
+        resp = requests.post(
+            'http://localhost:8000/api/login/password', json=push_json).json()
+        is_auth = resp.get('result')
+        if is_auth:
+            user_id = resp.get('user_id')
             context.user_data["success"] = True
-            db_sess.commit()
-            context.user_data["user_id"] = user.id
-            reply_keyboard = [['Поиск', 'Ссылка на сайт'], ['Регистрация', 'Войти']]
+            context.user_data["user_id"] = user_id
+            reply_keyboard = [['Поиск', 'Ссылка на сайт'],
+                              ['Регистрация', 'Войти']]
             markup = ReplyKeyboardMarkup(
                 reply_keyboard, one_time_keyboard=True)
             update.message.reply_text(
@@ -271,11 +287,11 @@ def main():
             Filters.text & ~ Filters.command, handler)],
         states={
             0: [MessageHandler(Filters.text & ~ Filters.command, handler,
-            pass_user_data=True)],
+                               pass_user_data=True)],
             1: [MessageHandler(Filters.text & ~ Filters.command, process_search, pass_user_data=True)],
             2: [MessageHandler(Filters.text & ~ Filters.command, registration, pass_user_data=True)],
             3: [MessageHandler(Filters.text & ~ Filters.command, login,
-            pass_user_data=True)],
+                               pass_user_data=True)],
         },
         fallbacks=[CommandHandler('stop', stop)]
     )
@@ -288,7 +304,6 @@ def main():
 
 
 if __name__ == '__main__':
-    db_session.global_init("db/music.db")
     app = flask_app.App()
     app.activate_route()
     t1 = threading.Thread(target=app.run)

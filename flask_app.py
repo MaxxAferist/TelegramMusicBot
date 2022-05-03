@@ -1,22 +1,24 @@
 from flask import Flask, abort, jsonify, make_response, redirect, request, render_template
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user
-from data import db_session
+from numpy import tile
+from data import db_session, music_api
 from data.searches import Search
 from data.users import User
 from data.songs import Song
 from data.authors import Author
 from forms.login import LoginForm
-from flask_restful import abort, Api
 
 
 class App():
     def __init__(self):
         self.app = Flask(__name__)
         self.app.config["SECRET_KEY"] = 'yandexlyceum_secret_key'
+        self.app.register_blueprint(music_api.blueprint)
         self.login_manager = LoginManager()
         self.login_manager.init_app(self.app)
     
     def run(self):
+        db_session.global_init('db/music.db')
         self.app.run(host='127.0.0.1', port=8000)
 
     def activate_route(self):
@@ -52,6 +54,12 @@ class App():
             searches = sorted(searches, key=lambda x: x.creation_data, reverse=True)
             return render_template('history.html', title='История', searches=searches)
 
+        @self.app.route('/table_liders')
+        def liders():
+            db_sess = db_session.create_session()
+            users = db_sess.query(User.name, User.points).all()
+            users = sorted(users, key=lambda x: x.points, reverse=True)
+            return render_template('game_table.html', title='Таблица лидеров', users=users)
 
         @self.app.route('/login', methods=['GET', 'POST'])
         def login():
