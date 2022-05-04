@@ -25,13 +25,6 @@ def get_user(id):
     return jsonify({'user': user.to_dict(only=('id', 'name', 'searches_id', 'points'))})
 
 
-# ДОДЕЛАТЬ
-@blueprint.route('/api/user/post', methods=['POST'])
-def user_post():
-    if not request.json:
-        return jsonify({'error': 'Empty request'})
-
-
 # Добавляем запрос к музыке
 @blueprint.route('/api/song/add_searches', methods=['POST'])
 def song_add_searches():

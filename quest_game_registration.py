@@ -1,10 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtWidgets import *
-from requests import request
-from data import db_session
-from data.users import User
-from data.searches import Search
 from PyQt5 import QtCore, QtGui, QtWidgets
 from ctypes import *
 from quest_game import Menu

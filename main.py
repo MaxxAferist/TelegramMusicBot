@@ -8,12 +8,6 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import spotipy
 import re
 import flask_app
-from data.users import User
-from data.songs import Song
-from data.authors import Author
-from data.searches import Search
-import logging
-import json
 import threading
 import random
 from list_anekdotov import anekdoty
