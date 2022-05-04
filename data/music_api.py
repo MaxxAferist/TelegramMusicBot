@@ -106,7 +106,6 @@ def register_name():
     if not request.json:
         return jsonify({'error': 'Empty request'})
     name = request.json.get('name')
-    print(name)
     db_sess = db_session.create_session()
     user = db_sess.query(User).filter(User.name == name).first()
     if user:
@@ -177,7 +176,7 @@ def game_enrollment_points():
 
 
 # Игра - получение очков пользователя
-@blueprint.route('/api/game/get_points/<int_id>')
+@blueprint.route('/api/game/get_points/<int:id>')
 def game_get_points(id):
     db_sess = db_session.create_session()
     user = db_sess.query(User).filter(
@@ -185,3 +184,43 @@ def game_get_points(id):
     points = user.points
     name = user.name
     return jsonify({'name': name, 'points': points})
+
+
+# Регистрация(игра) - заносим пользователя в бд
+@blueprint.route('/api/game/register/user', methods=['POST'])
+def game_register_user():
+    if not request.json:
+        return jsonify({'error': 'Empty request'})
+    name = request.json.get('name')
+    password = request.json.get('password')
+    print(name)
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.name == name).first()
+    if user:
+        message = "Имя занято. Попробуйте другое!"
+        return jsonify({'message': message, 'OK': False})
+    user = User()
+    user.name = name
+    user.set_password(password)
+    user.searches_id = ''
+    db_sess.add(user)
+    db_sess.commit()
+    return jsonify({'OK': True, 'user_id': user.id})
+
+
+# Вход(игра)
+@blueprint.route('/api/game/login/name', methods=['POST'])
+def game_login():
+    if not request.json:
+        return jsonify({'error': 'Empty request'})
+    name = request.json.get('name')
+    password = request.json.get('password')
+    db_sess = db_session.create_session()
+    user = db_sess.query(User).filter(User.name == name).first()
+    if not user:
+        return jsonify({"message": "Такого пользователя не существует",
+                        'result': False,
+                        'error': 415})
+    if user.check_password(password):
+        return jsonify({'result': True, 'user_id': user.id})
+    return jsonify({"result": False, 'error': 424})

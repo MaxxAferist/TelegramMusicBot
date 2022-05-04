@@ -5,6 +5,7 @@ import sqlite3
 import sys
 import random
 import pygame
+import requests
 
 
 pygame.mixer.init()
@@ -229,17 +230,19 @@ color: #FFFFFF;
 
 
 class Menu(QMainWindow, Menu_MainWindow):
-    def __init__(self):
+    def __init__(self, user_id):
         super().__init__()
         self.setupUi(self)
         self.pixmap = QPixmap('static/image/background.jpg')
         self.label.setPixmap(self.pixmap)
         self.exit_button.clicked.connect(self.exit)
         self.start_game.clicked.connect(self.go_game)
+        self.user_id = user_id
+
 
     def go_game(self):
         pygame.mixer.Sound('sounds/click.mp3').play()
-        self.game = Game()
+        self.game = Game(self.user_id)
         self.game.show()
         self.close()
 
@@ -257,7 +260,7 @@ class Ui_Dialog(object):
         self.lb2 = QtWidgets.QLabel(Dialog)
         self.lb2.setGeometry(QtCore.QRect(20, 30, 331, 61))
         font = QtGui.QFont()
-        font.setPointSize(16)
+        font.setPointSize(10)
         font.setBold(True)
         font.setWeight(75)
         self.lb2.setFont(font)
@@ -303,17 +306,20 @@ class Win_or_Lose(QDialog, Ui_Dialog):
             self.lb2.setText(f'Вы проиграли! У вас {self.points} очков')
 
     def exit(self):
-        sys.exit(app.exec_())
+        self.close()
 
 
 class Game(QMainWindow, Game_MainWindow):
-    def __init__(self):
+    def __init__(self, user_id):
         super().__init__()
         self.setupUi(self)
         self.setWindowTitle('Game')
         self.pixmap = QPixmap('static/image/menu_background.jpg')
         self.label.setPixmap(self.pixmap)
-        self.points = 0
+        self.user_id = user_id
+        points =  requests.get(
+            f'http://localhost:8000/api/game/get_points/{self.user_id}').json()["points"]
+        self.points = points
         self.mistakes = 0
         self.dct = {}
         self.preparation()
@@ -359,6 +365,12 @@ class Game(QMainWindow, Game_MainWindow):
             self.mistakes += 1
             self.label_3.setText(f'Ошибки: {self.mistakes}/3')
             if self.mistakes == 3:
+                push_json = {
+                    'user_id': self.user_id,
+                    'points': self.points
+                }
+                requests.post(
+                    'http://localhost:8000/api/game/enrollment_points', json=push_json)
                 self.win = Win_or_Lose(self.points)
                 self.close()
                 self.win.lose()

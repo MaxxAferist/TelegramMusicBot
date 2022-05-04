@@ -59,6 +59,7 @@ class App():
             db_sess = db_session.create_session()
             users = db_sess.query(User.name, User.points).all()
             users = sorted(users, key=lambda x: x.points, reverse=True)
+            users = [x for x in users if x.points > 0]
             return render_template('game_table.html', title='Таблица лидеров', users=users)
 
         @self.app.route('/login', methods=['GET', 'POST'])

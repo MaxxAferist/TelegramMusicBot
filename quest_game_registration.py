@@ -1,15 +1,16 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtWidgets import *
+from requests import request
 from data import db_session
 from data.users import User
 from data.searches import Search
 from PyQt5 import QtCore, QtGui, QtWidgets
 from ctypes import *
 from quest_game import Menu
+import requests
 
 KOEF = windll.user32.GetSystemMetrics(0) / 1920
-db_session.global_init("db/music.db")
 
 
 class Window_start(object):
@@ -55,7 +56,8 @@ class Window_start(object):
         self.label_5.setObjectName("label_5")
         self.hidden_label = QtWidgets.QLabel(self.centralwidget)
         self.hidden_label.setGeometry(QtCore.QRect(20, 340, 200, 30))
-        self.hidden_label.setStyleSheet("font: 25 10pt \"Microsoft YaHei Light\";")
+        self.hidden_label.setStyleSheet(
+            "font: 25 10pt \"Microsoft YaHei Light\";")
         self.hidden_label.setObjectName("hidden_label")
         self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_2.setGeometry(QtCore.QRect(180, 285, 140, 40))
@@ -75,12 +77,17 @@ class Window_start(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Приветсвуем"))
-        self.label.setText(_translate("MainWindow", f"<html><head/><body><p align=\"center\"><span style=\" font-size:{16 * KOEF}pt;\">Приветствуем, в игре &quot;Споп&quot;</span></p></body></html>"))
-        self.label_2.setText(_translate("MainWindow", f"<html><head/><body><p align=\"center\"><span style=\" font-size:{16 * KOEF}pt;\">Введите логин и пароль</span></p></body></html>"))
-        self.label_3.setText(_translate("MainWindow", f"<html><head/><body><p align=\"center\"><span style=\" font-size:{16 * KOEF}pt;\">Логин</span></p></body></html>"))
-        self.label_4.setText(_translate("MainWindow", f"<html><head/><body><p align=\"center\"><span style=\" font-size:{16 * KOEF}pt;\">Пароль</span></p></body></html>"))
+        self.label.setText(_translate(
+            "MainWindow", f"<html><head/><body><p align=\"center\"><span style=\" font-size:{16 * KOEF}pt;\">Приветствуем, в игре &quot;Споп&quot;</span></p></body></html>"))
+        self.label_2.setText(_translate(
+            "MainWindow", f"<html><head/><body><p align=\"center\"><span style=\" font-size:{16 * KOEF}pt;\">Введите логин и пароль</span></p></body></html>"))
+        self.label_3.setText(_translate(
+            "MainWindow", f"<html><head/><body><p align=\"center\"><span style=\" font-size:{16 * KOEF}pt;\">Логин</span></p></body></html>"))
+        self.label_4.setText(_translate(
+            "MainWindow", f"<html><head/><body><p align=\"center\"><span style=\" font-size:{16 * KOEF}pt;\">Пароль</span></p></body></html>"))
         self.pushButton.setText(_translate("MainWindow", "Войти"))
-        self.label_5.setText(_translate("MainWindow", f"<html><head/><body><p align=\"center\"><span style=\" font-size:{16 * KOEF}pt;\">Если у вас нет регистрации(Нелегалы)</span></p></body></html>"))
+        self.label_5.setText(_translate(
+            "MainWindow", f"<html><head/><body><p align=\"center\"><span style=\" font-size:{16 * KOEF}pt;\">Если у вас нет регистрации(Нелегалы)</span></p></body></html>"))
         self.pushButton_2.setText(_translate("MainWindow", "Регистрация"))
 
 
@@ -114,8 +121,9 @@ class Window_reg(object):
         self.pushButton.setObjectName("pushButton")
         MainWindow.setCentralWidget(self.centralwidget)
         self.hidden_label = QtWidgets.QLabel(self.centralwidget)
-        self.hidden_label.setGeometry(QtCore.QRect(20, 190, 200, 30))
-        self.hidden_label.setStyleSheet("font: 25 10pt \"Microsoft YaHei Light\";")
+        self.hidden_label.setGeometry(QtCore.QRect(20, 190, 480, 30))
+        self.hidden_label.setStyleSheet(
+            "font: 25 10pt \"Microsoft YaHei Light\";")
         self.hidden_label.setObjectName("hidden_label")
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 500, 21))
@@ -131,9 +139,12 @@ class Window_reg(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.label.setText(_translate("MainWindow", f"<html><head/><body><p align=\"center\"><span style=\" font-size:{22 * KOEF}pt;\">Регистрация</span></p></body></html>"))
-        self.label_2.setText(_translate("MainWindow", f"<html><head/><body><p align=\"right\"><span style=\" font-size:{16 * KOEF}pt;\">Логин</span></p></body></html>"))
-        self.label_3.setText(_translate("MainWindow", f"<html><head/><body><p align=\"right\"><span style=\" font-size:{16 * KOEF}pt;\">Пароль</span></p></body></html>"))
+        self.label.setText(_translate(
+            "MainWindow", f"<html><head/><body><p align=\"center\"><span style=\" font-size:{22 * KOEF}pt;\">Регистрация</span></p></body></html>"))
+        self.label_2.setText(_translate(
+            "MainWindow", f"<html><head/><body><p align=\"right\"><span style=\" font-size:{16 * KOEF}pt;\">Логин</span></p></body></html>"))
+        self.label_3.setText(_translate(
+            "MainWindow", f"<html><head/><body><p align=\"right\"><span style=\" font-size:{16 * KOEF}pt;\">Пароль</span></p></body></html>"))
 
         self.pushButton.setText(_translate("MainWindow", "Зарегистрироваться"))
 
@@ -149,17 +160,18 @@ class MainWindow(QMainWindow, Window_start):
         self.hidden_label.setText('')
         login = self.lineEdit.text()
         password = self.lineEdit_2.text()
-        if login:
-            db_sess = db_session.create_session()
-            user = db_sess.query(User).filter(User.name == login).first()
-            if not user:
+        if login and password:
+            json_push = {
+                'name': login,
+                'password': password
+            }
+            resp = requests.post(
+                'http://localhost:8000/api/game/login/name', json=json_push).json()
+            if not resp.get('result') and resp.get('error') == 415:
                 self.hidden_label.setText('Такого имени не существует!')
-                return 3
-        if password:
-            db_sess = db_session.create_session()
-            user = db_sess.query(User).filter(User.name == login).first()
-            if user.check_password(password):
-                db_sess.commit()
+            elif resp.get('result'):
+                user_id = resp.get('user_id')
+                self.user_id = user_id
                 self.go_menu()
             else:
                 self.hidden_label.setText('Неправильный пароль')
@@ -170,7 +182,7 @@ class MainWindow(QMainWindow, Window_start):
         self.close()
 
     def go_menu(self):
-        self.menu = Menu()
+        self.menu = Menu(self.user_id)
         self.menu.show()
         self.close()
 
@@ -185,21 +197,15 @@ class Reg_Window(QMainWindow, Window_reg):
         self.hidden_label.setText('')
         login = self.lineEdit.text()
         password = self.lineEdit_2.text()
-        if login:
-            db_sess = db_session.create_session()
-            user = db_sess.query(User).filter(User.name == login).first()
-            if user:
+        if login and password:
+            json_push = {'name': login,
+                         'password': password}
+            resp = requests.post(
+                'http://localhost:8000/api/game/register/user', json=json_push).json()
+            if not resp.get('OK'):
                 self.hidden_label.setText('Такое имя уже существует!')
-                self.go_main()
                 return 2
-        if password:
-            db_sess = db_session.create_session()
-            user = User()
-            user.name = login
-            user.set_password(password)
-            user.searches_id = ''
-            db_sess.add(user)
-            db_sess.commit()
+            self.go_main()
 
     def go_main(self):
         self.main_window = MainWindow()
