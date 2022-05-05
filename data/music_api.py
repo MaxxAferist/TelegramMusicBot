@@ -46,7 +46,7 @@ def song_add_searches():
             searches=1
         )
         db_sess.add(song_db)
-        db_sess.commit()
+    db_sess.commit()
     return jsonify({"OK": "Success", "song_id": song_db.id})
 
 
@@ -67,7 +67,7 @@ def author_add_searches():
             searches=1
         )
         db_sess.add(author_db)
-        db_sess.commit()
+    db_sess.commit()
     return jsonify({'OK': "Success"})
 
 
@@ -163,8 +163,10 @@ def game_enrollment_points():
     db_sess = db_session.create_session()
     user = db_sess.query(User).filter(
         User.id == user_id).first()
-    user.points = points
-    db_sess.commit()
+    print(user.points, points)
+    if user.points < points:
+        user.points = points
+        db_sess.commit()
     return jsonify({'OK': 'success'})
 
 

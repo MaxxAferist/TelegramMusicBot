@@ -300,11 +300,10 @@ class Win_or_Lose(QDialog, Ui_Dialog):
         if point == 1 and self.points != 11:
             self.lb2.setText(f'Вы проиграли! У вас {self.points} очко')
 
-        elif 1 < point < 5:
+        elif 1 < point < 5 and not 10 < self.points < 15:
             self.lb2.setText(f'Вы проиграли! У вас {self.points} очка')
         else:
             self.lb2.setText(f'Вы проиграли! У вас {self.points} очков')
-
     def exit(self):
         self.close()
 
@@ -319,7 +318,7 @@ class Game(QMainWindow, Game_MainWindow):
         self.user_id = user_id
         points =  requests.get(
             f'http://localhost:8000/api/game/get_points/{self.user_id}').json()["points"]
-        self.points = points
+        self.points = 0
         self.mistakes = 0
         self.dct = {}
         self.preparation()

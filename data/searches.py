@@ -6,7 +6,7 @@ import datetime
 
 
 class Search(SqlAlchemyBase, SerializerMixin):
-    __tablename__ = 'searhes'
+    __tablename__ = 'searches'
 
     id = sqlalchemy.Column(
         sqlalchemy.Integer, primary_key=True, autoincrement=True)

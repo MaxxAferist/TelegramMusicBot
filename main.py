@@ -30,9 +30,11 @@ def process_search(update, context):
         song = genius.search_song(song_text)
         text = f'{song.artist} {song.title}'
         text = re.sub(r'\([^()]*\)', '', text)
-        # result = sp.search(q=text)['tracks']['items'][0]
-        # url = result['external_urls']['spotify']
-        url = 'В данный момент Spotify не работает на территории России из-за санкций\nПриносим свои извинения'
+        result = sp.search(q=text)['tracks']['items'][0]
+        try:
+            url = result['external_urls']['spotify']
+        except:
+            url = 'https://www.spotify.com/ru-ru/why-not-available/'
 
         context.user_data['title'] = song.title
         context.user_data['artist'] = song.artist
@@ -192,8 +194,13 @@ def registration(update, context):
                               ['Регистрация', 'Войти']]
             markup = ReplyKeyboardMarkup(
                 reply_keyboard, one_time_keyboard=True)
+            
             update.message.reply_text(
                 'Вы успешно зарегистрированны! Теперь можете войти на наш сайт и просматривать свою историю', reply_markup=markup)
+            context.user_data["name"] = None
+            context.user_data["password"] = None
+            context.user_data["password_check"] = None
+            context.user_data["success"] = False
             return 0
         else:
             reply_keyboard = [['Поиск', 'Ссылка на сайт'],
